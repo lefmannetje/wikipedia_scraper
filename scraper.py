@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 import time
+import json
+
 
 def check_status(session, status_url):
     try:
@@ -16,8 +18,6 @@ def check_status(session, status_url):
         print(f"ConnectionError: {e}")
     finally:
         # Close the session after use
-        print("CLOSING TIME")
-        print(time.time())
         session.close()
 
 def get_cookie(session, cookie_url):
@@ -48,7 +48,6 @@ def find_first_bold_paragraph(wiki_url, session):
         if paragraph.find('b'):
             return {
                 'paragraph_text': paragraph.text.strip(),
-                'bold_text': [b.text.strip() for b in paragraph.find_all('b')]
             }
     
     return "No paragraph found with bold text."
@@ -58,3 +57,26 @@ def check(word, list):
         return True
     else:
         return False
+
+def create_leaders_json(leaders_per_county):
+    # Serialize the dictionary to a JSON string
+    json_data = json.dumps(leaders_per_county, ensure_ascii=False, indent=2)
+    
+    # Write the JSON string to a file
+    with open('leaders.json', 'w', encoding='utf-8') as f:
+        f.write(json_data)
+    
+    print("leaders.json file has been created successfully.")
+
+def read_leaders_json():
+    try:
+        # Open and read the JSON file
+        with open('leaders.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data
+    except FileNotFoundError:
+        print("Error: leaders.json file not found.")
+        return None
+    except json.JSONDecodeError:
+        print("Error: Invalid JSON in leaders.json file.")
+        return None

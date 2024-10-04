@@ -1,10 +1,12 @@
 import requests
-import pprint
+from pprint import pprint
 import time
 from bs4 import BeautifulSoup
 import scraper
+import sys
+import json
 
-print(time.time())
+start_time = time.time()
 
 
 # URL and endpoint definitions
@@ -25,8 +27,6 @@ cookies = scraper.get_cookie(session, cookie_url)
 countries = scraper.get_countries(cookies, session, countries_url)
 
 leaders_per_country = {}
-
-print=(time.time())
 
 for country in countries:        
     if scraper.check(country, ['be', 'fr']):
@@ -51,13 +51,12 @@ for country in countries:
         
         leaders_per_country[country] = country_leaders
 
-# Print the results
-for country, leaders in leaders_per_country.items():
-    print(f"===============  {country}  ===================")
-    for leader in leaders:
-        print(f"ID: {leader['id']}")
-        print(f"Name: {leader['name']}")
-        print(f"Wikipedia URL: {leader['wikipedia_url']}")
-        print("First paragraph:")
-        pprint.pp(leader['first_paragraph'])
-        print()
+scraper.create_leaders_json(leaders_per_country)
+
+end_time = time.time()
+print("It took ", end_time-start_time, "seconds to scrape Wiki!")
+
+leaders_data = scraper.read_leaders_json()
+if leaders_data:
+    print("Data read from leaders.json:")
+    print(json.dumps(leaders_data, indent=2, ensure_ascii=False))
