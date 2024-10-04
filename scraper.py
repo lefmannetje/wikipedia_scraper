@@ -52,12 +52,6 @@ def find_first_bold_paragraph(wiki_url, session):
     
     return "No paragraph found with bold text."
 
-def check(word, list):
-    if word in list:
-        return True
-    else:
-        return False
-
 def create_leaders_json(leaders_per_county):
     # Serialize the dictionary to a JSON string
     json_data = json.dumps(leaders_per_county, ensure_ascii=False, indent=2)
