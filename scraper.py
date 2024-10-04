@@ -32,9 +32,25 @@ def get_leaders(country, cookies, session, leaders_url):
     response = session.get(leaders_url, params={'country': country}, cookies=cookies)
     return response.json() if response.status_code == 200 else []
 
-def get_leader_wiki(leader_id, cookies, leader_url, session):
-    response = session.get(leader_url, params={'leader_id': leader_id}, cookies=cookies)
-    return response.json()['wikipedia_url'] if response.status_code == 200 else None
+def get_leader_wiki(leader_id, cookies, leader_url, session, max_retries=3):
+    attempt = 0
+    while attempt < max_retries:
+        try:
+            response = session.get(leader_url, params={'leader_id': leader_id}, cookies=cookies)
+            if response.status_code == 200:
+                return response.json().get('wikipedia_url')
+            else:
+                cookies = get_cookie(session, "https://country-leaders.onrender.com/cookie/")
+                time.sleep(1)
+                print(f"Failed attempt {attempt + 1}, status code: {response.status_code}")
+        except Exception as e:
+            print(f"Exception on attempt {attempt + 1}: {e}")
+
+        attempt += 1
+        print(f"Retrying... ({attempt}/{max_retries})")
+
+    print(f"Failed to fetch after {max_retries} attempts.")
+    return None
 
 def find_first_bold_paragraph(wiki_url, session):
     response = session.get(wiki_url)
@@ -51,12 +67,6 @@ def find_first_bold_paragraph(wiki_url, session):
             }
     
     return "No paragraph found with bold text."
-
-def check(word, list):
-    if word in list:
-        return True
-    else:
-        return False
 
 def create_leaders_json(leaders_per_county):
     # Serialize the dictionary to a JSON string
